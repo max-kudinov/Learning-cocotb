@@ -9,10 +9,20 @@ async def execute_test(tester_class):
     bfm = TinyAluBfm()
     scoreboard = Scoreboard()
     await bfm.reset()
+
+    # Parallel like fork join because we don't await
+    # BFM starts interration with the DUT (drive/monitor)
     bfm.start_tasks()
+    # Scoreboard gets values from BFM queues
     scoreboard.start_tasks()
+    # ----------------------
+
     tester = tester_class()
+
+    # Sends stimulus to the DUT
     await tester.execute()
+
+    # Check monitored commands and results with a model
     passed = scoreboard.check_results()
     return passed
 
