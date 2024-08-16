@@ -2,7 +2,9 @@ import cocotb
 from scoreboard import Scoreboard
 from random_tester import RandomTester
 from max_tester import MaxTester
-from tinyalu_utils import TinyAluBfm
+import sys
+sys.path.insert(0, "..")
+from tinyalu_utils import TinyAluBfm  # noqa: E402
 
 
 async def execute_test(tester_class):

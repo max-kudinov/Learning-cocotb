@@ -1,5 +1,7 @@
 import cocotb
-from tinyalu_utils import TinyAluBfm, Ops, alu_prediction, logger
+import sys
+sys.path.insert(0, "..")
+from tinyalu_utils import TinyAluBfm, Ops, alu_prediction, logger  # noqa: E402
 
 
 class Scoreboard():

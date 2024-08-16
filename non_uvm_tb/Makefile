@@ -1,9 +1,9 @@
 SIM ?= icarus
 
 TOPLEVEL_LANG ?= verilog
-VERILOG_SOURCES += $(PWD)/tinyalu.sv
+VERILOG_SOURCES += $(PWD)/../tinyalu.sv
 TOPLEVEL = tinyalu
-MODULE = tb.testbench
+MODULE = testbench
 
 COCOTB_HDL_TIMEUNIT = 1ns
 COCOTB_HDL_TIMEPRECISION = 1ps
