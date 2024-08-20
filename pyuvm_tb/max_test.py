@@ -1,10 +1,11 @@
 import pyuvm
-from base_test import BaseTest
-from max_tester import MaxTester
+from pyuvm import uvm_test
+from max_env import MaxEnv
 
 
 @pyuvm.test()
-class MaxTest(BaseTest):
+class MaxTest(uvm_test):
     """Run with max operators"""
+
     def build_phase(self):
-        self.tester = MaxTester()
+        self.env = MaxEnv("env", self)

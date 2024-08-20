@@ -1,10 +1,15 @@
+from pyuvm import uvm_component
 from tinyalu_utils import TinyAluBfm, Ops
 
 
-class BaseTester():
+class BaseTester(uvm_component):
     """Gets operands, commands and sends them"""
 
-    async def execute(self):
+    def start_of_simulation_phase(self):
+        TinyAluBfm().start_tasks()
+
+    async def run_phase(self):
+        self.raise_objection()
         self.bfm = TinyAluBfm()
         ops = list(Ops)
 
@@ -14,3 +19,4 @@ class BaseTester():
 
         await self.bfm.send_op(0, 0, 1)
         await self.bfm.send_op(0, 0, 1)
+        self.drop_objection()

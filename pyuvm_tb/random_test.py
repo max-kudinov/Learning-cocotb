@@ -1,10 +1,11 @@
 import pyuvm
-from base_test import BaseTest
-from random_tester import RandomTester
+from pyuvm import uvm_test
+from random_env import RandomEnv
 
 
 @pyuvm.test()
-class RandomTest(BaseTest):
+class RandomTest(uvm_test):
     """Run with random operators"""
+
     def build_phase(self):
-        self.tester = RandomTester()
+        self.env = RandomEnv("env", self)
