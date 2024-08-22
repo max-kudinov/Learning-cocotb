@@ -1,0 +1,4 @@
+     0.00ns INFO     ..l_verif/pyuvm_tb/testbench.py(9) [uvm_test_top]: This is info
+     0.00ns [33mWARNING [49m[39m .._verif/pyuvm_tb/testbench.py(10) [33m[uvm_test_top]: This is warning[49m[39m
+     0.00ns [31mERROR   [49m[39m .._verif/pyuvm_tb/testbench.py(11) [31m[uvm_test_top]: This is error[49m[39m
+     0.00ns [41m[30mCRITICAL[49m[39m .._verif/pyuvm_tb/testbench.py(12) [41m[30m[uvm_test_top]: This is critical[49m[39m

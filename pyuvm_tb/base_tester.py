@@ -1,12 +1,20 @@
-from pyuvm import uvm_component
-from tinyalu_utils import TinyAluBfm, Ops
+import cocotb
+from cocotb.triggers import ClockCycles
+from pyuvm import uvm_component, uvm_put_port
+import sys
+sys.path.insert(0, "..")
+from tinyalu_utils import TinyAluBfm, Ops  # noqa: E402
 
 
 class BaseTester(uvm_component):
     """Gets operands, commands and sends them"""
 
-    def start_of_simulation_phase(self):
-        TinyAluBfm().start_tasks()
+    def get_operands(self):
+        raise RuntimeError("You must extend BaseTester and override"
+                           "get_operands().")
+
+    def build_phase(self):
+        self.pp = uvm_put_port("pp", self)
 
     async def run_phase(self):
         self.raise_objection()
@@ -15,8 +23,8 @@ class BaseTester(uvm_component):
 
         for op in ops:
             a, b = self.get_operands()
-            await self.bfm.send_op(a, b, op)
+            cmd_tupple = (a, b, op)
+            await self.pp.put(cmd_tupple)
 
-        await self.bfm.send_op(0, 0, 1)
-        await self.bfm.send_op(0, 0, 1)
+        await ClockCycles(signal=cocotb.top.clk, num_cycles=10, rising=False)
         self.drop_objection()
