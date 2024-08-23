@@ -1,14 +1,13 @@
 import pyuvm
-from pyuvm import uvm_factory, uvm_test
-from alu_env import AluEnv
-from base_tester import BaseTester
-from random_tester import RandomTester
+from pyuvm import uvm_factory
+from base_test import BaseTest
+from base_seq import BaseSeq
+from seq import RandomSeq
 
 
 @pyuvm.test()
-class RandomTest(uvm_test):
+class RandomTest(BaseTest):
     """Run with random operators"""
 
-    def build_phase(self):
-        uvm_factory().set_type_override_by_type(BaseTester, RandomTester)
-        self.env = AluEnv("env", self)
+    def start_of_simulation_phase(self):
+        uvm_factory().set_type_override_by_type(BaseSeq, RandomSeq)

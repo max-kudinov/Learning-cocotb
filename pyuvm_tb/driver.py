@@ -1,4 +1,4 @@
-from pyuvm import uvm_driver, uvm_get_port
+from pyuvm import uvm_analysis_port, uvm_driver
 import sys
 sys.path.insert(0, "..")
 from tinyalu_utils import TinyAluBfm  # noqa: E402
@@ -6,12 +6,15 @@ from tinyalu_utils import TinyAluBfm  # noqa: E402
 
 class Driver(uvm_driver):
     def build_phase(self):
+        self.ap = uvm_analysis_port("ap", self)
+
+    def start_of_simulation_phase(self):
         self.bfm = TinyAluBfm()
-        self.gp = uvm_get_port("gp", self)
 
     async def run_phase(self):
         await self.bfm.reset()
         self.bfm.start_tasks()
         while True:
-            a, b, op = await self.gp.get()
-            await self.bfm.send_op(a, b, op)
+            cmd = await self.seq_item_port.get_next_item()
+            await self.bfm.send_op(cmd.A, cmd.B, cmd.op)
+            self.seq_item_port.item_done()

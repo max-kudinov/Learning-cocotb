@@ -1,14 +1,13 @@
 import pyuvm
-from pyuvm import uvm_factory, uvm_test
-from alu_env import AluEnv
-from max_tester import MaxTester
-from base_tester import BaseTester
+from pyuvm import uvm_factory
+from base_test import BaseTest
+from base_seq import BaseSeq
+from seq import MaxSeq
 
 
 @pyuvm.test()
-class MaxTest(uvm_test):
+class MaxTest(BaseTest):
     """Run with max operators"""
 
-    def build_phase(self):
-        uvm_factory().set_type_override_by_type(BaseTester, MaxTester)
-        self.env = AluEnv("env", self)
+    def start_of_simulation_phase(self):
+        uvm_factory().set_type_override_by_type(BaseSeq, MaxSeq)
