@@ -7,41 +7,31 @@ from tinyalu_utils import TinyAluBfm, Ops, alu_prediction   # noqa: E402
 
 class Scoreboard(uvm_component):
     def build_phase(self):
-        self.cmd_mon_fifo = uvm_tlm_analysis_fifo("cmd_mon_fifo", self)
-        self.result_mon_fifo = uvm_tlm_analysis_fifo("result_mon_fifo", self)
-        self.cmd_gp = uvm_get_port("cmd_gp", self)
-        self.result_gp = uvm_get_port("result_gp", self)
+        self.cmd_fifo = uvm_tlm_analysis_fifo("cmd_fifo", self)
+        self.result_fifo = uvm_tlm_analysis_fifo("result_fifo", self)
+        self.cmd_get_port = uvm_get_port("cmd_get_port", self)
+        self.result_get_port = uvm_get_port("result_get_port", self)
+        self.cmd_export = self.cmd_fifo.analysis_export
+        self.result_export = self.result_fifo.analysis_export
 
     def connect_phase(self):
-        self.cmd_gp.connect(self.cmd_mon_fifo.get_export)
-        self.result_gp.connect(self.result_mon_fifo.get_export)
-        self.cmd_export = self.cmd_mon_fifo.analysis_export
-        self.result_export = self.result_mon_fifo.analysis_export
+        self.cmd_get_port.connect(self.cmd_fifo.get_export)
+        self.result_get_port.connect(self.result_fifo.get_export)
 
     def check_phase(self):
-        passed = True
-        while True:
-            got_next_cmd, cmd = self.cmd_gp.try_get()
-
-            if not got_next_cmd:
-                break
-
-            result_exists, actual = self.result_gp.try_get()
-
-            if not result_exists:
-                raise RuntimeError(f"Missing result for command {cmd}")
-
-            a, b, op = cmd
-            op = Ops(op)
-            prediction = alu_prediction(a, b, op)
-
-            if actual == prediction:
-                self.logger.info(f"PASSED: {a:02x} {op.name} {b:02x} = "
-                                 f"{actual:04x}")
+        while self.result_get_port.can_get():
+            _, actual_result = self.result_get_port.try_get()
+            cmd_success, cmd = self.cmd_get_port.try_get()
+            if not cmd_success:
+                self.logger.critical(f"result {actual_result} had no command")
             else:
-                self.logger.error(
-                    f"FAILED: {a:02x} {op.name} {b:02x} = {actual:04x}"
-                    f" - predicted {prediction:04x}")
-                passed = False
-
-        assert passed
+                (A, B, op_numb) = cmd
+                op = Ops(op_numb)
+                predicted_result = alu_prediction(A, B, op)
+                if predicted_result == actual_result:
+                    self.logger.info(f"PASSED: 0x{A:02x} {op.name} 0x{B:02x} ="
+                                     f" 0x{actual_result:04x}")
+                else:
+                    self.logger.error(f"FAILED: 0x{A:02x} {op.name} 0x{B:02x} "
+                                      f"= 0x{actual_result:04x} "
+                                      f"expected 0x{predicted_result:04x}")

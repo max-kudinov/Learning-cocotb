@@ -1,61 +1,38 @@
+import cocotb
+from cocotb.triggers import Combine
 import pyuvm
-import copy
-from pyuvm import uvm_object, uvm_test
+from pyuvm import CRITICAL, uvm_factory, uvm_sequence, uvm_test, ConfigDB
+from alu_env import AluEnv
+from fibonacci_seq import FibonacciSeq
+from seq import RandomSeq, MaxSeq
 
 
-class PersonRecord(uvm_object):
-    def __init__(self, name="", id_number=None):
-        super().__init__(name)
-        self.id_number = id_number
+class AluTest(uvm_test):
+    def build_phase(self):
+        self.env = AluEnv("env", self)
 
-    def __str__(self):
-        return f"Name: {self.get_name()}, ID: {self.id_number}"
+    def end_of_elaboration_phase(self):
+        self.test_all = TestAllSeq.create("test_all")
 
-    def __eq__(self, other):
-        return self.id_number == other.id_number
-
-    def do_copy(self, other):
-        super().do_copy(other)
-        self.id_number = other.id_number
-
-
-class StudentRecord(PersonRecord):
-    def __init__(self, name="", id_number=None, grades=[]):
-        super().__init__(name, id_number)
-        self.grades = grades
-
-    def __str__(self):
-        return super().__str__() + f" Grades: {self.grades}"
-
-    def do_copy(self, other):
-        super().do_copy(other)
-        self.grades = list(other.grades)
-
-
-@pyuvm.test()
-class CopyTest(uvm_test):
     async def run_phase(self):
         self.raise_objection()
-        mary = StudentRecord("Mary", 33, [97, 82])
-        mary_copy = StudentRecord()
-        mary_copy.copy(mary)
-        print("mary:", mary)
-        print("mary_copy:", mary_copy)
-        print("-----grades-------")
-        print("mary id:", id(mary.grades))
-        print("mary_copy id", id(mary_copy.grades))
+        await self.test_all.start()
         self.drop_objection()
 
 
+class TestAllSeq(uvm_sequence):
+    async def body(self):
+        seqr = ConfigDB().get(None, "", "SEQR")
+        rand_seq = RandomSeq("random")
+        max_seq = MaxSeq("max")
+        await rand_seq.start(seqr)
+        await max_seq.start(seqr)
+
+
 @pyuvm.test()
-class CloneTest(uvm_test):
-    async def run_phase(self):
-        self.raise_objection()
-        mary = StudentRecord("Mary", 33, [97, 82])
-        mary_copy = mary.clone()
-        print("mary:", mary)
-        print("mary_copy:", mary_copy)
-        print("-----grades-------")
-        print("mary id:", id(mary.grades))
-        print("mary_copy id", id(mary_copy.grades))
-        self.drop_objection()
+class FibonacciTest(AluTest):
+    def end_of_elaboration_phase(self):
+        ConfigDB().set(None, "*", "DISABLE_COVERAGE_ERRORS", True)
+        self.env.set_logging_level_hier(CRITICAL)
+        uvm_factory().set_type_override_by_type(TestAllSeq, FibonacciSeq)
+        return super().end_of_elaboration_phase()
